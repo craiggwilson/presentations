@@ -6,16 +6,16 @@ using Machine.Specifications;
 
 namespace MyIoC.ContainerSpecs
 {
-    [Subject("In the context of resolving by type")]
+    [Subject(typeof(Container))]
     public class when_the_type_has_dependencies : In_the_context_of_resolving_by_type
     {
         static object _result;
 
-        Because of = () =>
-        {
+        Establish context = () =>
             _container.Register<DummyServiceDependencyA>(new DummyServiceDependencyA());
+
+        Because of = () =>
             _result = _container.Resolve<DummyService>();
-        };
 
         It should_return_a_non_null_object = () =>
             _result.ShouldNotBeNull();

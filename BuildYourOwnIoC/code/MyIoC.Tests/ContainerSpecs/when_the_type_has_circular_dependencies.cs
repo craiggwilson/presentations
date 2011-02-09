@@ -6,15 +6,13 @@ using Machine.Specifications;
 
 namespace MyIoC.ContainerSpecs
 {
-    [Subject("In the context of resolving by type")]
+    [Subject(typeof(Container))]
     public class when_the_type_has_circular_dependencies : In_the_context_of_resolving_by_type
     {
         static Exception _ex;
 
         Because of = () =>
-        {
             _ex = Catch.Exception(() => _container.Resolve<DummyService>());
-        };
 
         It should_throw_an_exception = () =>
             _ex.ShouldNotBeNull();
