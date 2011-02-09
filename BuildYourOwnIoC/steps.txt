@@ -22,3 +22,5 @@
 	b) Introduce a registration class
 	c) fix tests
 	d) syntactic sugar
+8) Deal with cycles
+	- This has already been abstracted away, just need to implement it.
