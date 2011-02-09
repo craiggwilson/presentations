@@ -14,16 +14,13 @@ namespace MyIoC.SingletonLifetimeSpecs
 
         Because of = () =>
         {
-            var lifetime = new SingletonLifetime();
-            var registration = new Registration(typeof(DummyService), lifetime);
-            var resolver = new Moq.Mock<IResolver>();
-            var activator = new Moq.Mock<IActivator>();
-            var dummyServiceQueue = new Queue<DummyService>(new[] { new DummyService(), new DummyService() });
-            activator.Setup(x => x.Activate(typeof(DummyService), resolver.Object)).Returns(dummyServiceQueue.Dequeue);
-            var context = new ResolutionContext(registration, resolver.Object, activator.Object);
+            var queue = new Queue<DummyService>(new[] { new DummyService(), new DummyService() });
+            var context = new Moq.Mock<IResolutionContext>();
+            context.Setup(x => x.Activate()).Returns(queue.Dequeue);
 
-            _result1 = lifetime.GetInstance(context);
-            _result2 = lifetime.GetInstance(context);
+            var lifetime = new SingletonLifetime();
+            _result1 = lifetime.GetInstance(context.Object);
+            _result2 = lifetime.GetInstance(context.Object);
         };
 
         It should_return_non_null_objects = () =>

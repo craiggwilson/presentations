@@ -22,8 +22,6 @@ namespace MyIoC.ContainerSpecs
 
 
         private class DummyService
-        {
-
-        }
+        { }
     }
 }

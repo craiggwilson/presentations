@@ -8,11 +8,6 @@ using System.Reflection;
 
 namespace MyIoC
 {
-    /*Goals: 
-     * 1) Resolve a type by instantiating it
-     * 2) Resolve a type  by looking it up
-     * 3) Resolve a type with dependencies
-    */
     public interface IResolver
     {
         object Resolve(Type type);
@@ -25,7 +20,23 @@ namespace MyIoC
 
     public interface ILifetime
     {
-        object GetInstance(ResolutionContext context);
+        object GetInstance(IResolutionContext context);
+    }
+
+    public interface IActivator
+    {
+        object Activate(Type type, IResolver resolver);
+    }
+
+    public interface IResolutionContext
+    {
+        Registration Registration { get; }
+
+        IResolver Resolver { get; }
+
+        object Activate();
+
+        object GetInstance();
     }
 
     public class SingletonLifetime : ILifetime
@@ -40,7 +51,7 @@ namespace MyIoC
             _instance = instance;
         }
 
-        public object GetInstance(ResolutionContext context)
+        public object GetInstance(IResolutionContext context)
         {
             if (_instance == null)
                 _instance = context.Activate();
@@ -50,15 +61,10 @@ namespace MyIoC
 
     public class TransientLifetime : ILifetime
     {
-        public object GetInstance(ResolutionContext context)
+        public object GetInstance(IResolutionContext context)
         {
             return context.Activate();
         }
-    }
-
-    public interface IActivator
-    {
-        object Activate(Type type, IResolver resolver);
     }
 
     public class Activator : IActivator
@@ -81,7 +87,7 @@ namespace MyIoC
         }
     }
 
-    public class ResolutionContext
+    public class ResolutionContext : IResolutionContext
     {
         private IActivator _activator;
 
@@ -127,12 +133,7 @@ namespace MyIoC
 
     public class Container : IRegistrar, IResolver
     {
-        private readonly ConcurrentDictionary<Type, Registration> _registrations;
-
-        public Container()
-        {
-            _registrations = new ConcurrentDictionary<Type, Registration>();
-        }
+        private readonly ConcurrentDictionary<Type, Registration> _registrations = new ConcurrentDictionary<Type, Registration>();
 
         public void Register(Type type, Registration registration)
         {
@@ -141,12 +142,31 @@ namespace MyIoC
 
         public object Resolve(Type type)
         {
-            var registration = _registrations.GetOrAdd(
-                type,
-                new Registration(type, new TransientLifetime()));
+            var resolver = new ContextualResolver(t => _registrations.GetOrAdd(t, new Registration(t, new TransientLifetime())));
+            return resolver.Resolve(type);
+        }
 
-            var context = new ResolutionContext(registration, this, new Activator());
-            return context.GetInstance();
+        private class ContextualResolver : IResolver
+        {
+            private Func<Type, Registration> _registrationFinder;
+            private Stack<Type> _typeChain = new Stack<Type>();
+
+            public ContextualResolver(Func<Type, Registration> registrationFinder)
+            {
+                _registrationFinder = registrationFinder;
+            }
+
+            public object Resolve(Type type)
+            {
+                if (_typeChain.Contains(type))
+                    throw new Exception(string.Format("Circular dependency found when resolving type {0}", type));
+
+                _typeChain.Push(type);
+                var registration = _registrationFinder(type);
+
+                var context = new ResolutionContext(registration, this, new Activator());
+                return context.GetInstance();
+            }
         }
     }
 

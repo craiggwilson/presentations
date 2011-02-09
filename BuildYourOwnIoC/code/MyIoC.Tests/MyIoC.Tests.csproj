@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="ActivatorSpecs\When_activating_a_type_with_dependencies.cs" />
     <Compile Include="ActivatorSpecs\When_activating_a_type_without_dependencies.cs" />
+    <Compile Include="ContainerSpecs\when_the_type_has_circular_dependencies.cs" />
     <Compile Include="ContainerSpecs\when_the_type_has_dependencies.cs" />
     <Compile Include="ContainerSpecs\when_an_instance_of_a_type_was_registered.cs" />
     <Compile Include="ContainerSpecs\when_the_type_has_a_default_constructor.cs" />
