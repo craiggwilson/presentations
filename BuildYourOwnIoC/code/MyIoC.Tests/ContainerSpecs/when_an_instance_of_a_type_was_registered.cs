@@ -16,7 +16,7 @@ namespace MyIoC.ContainerSpecs
         {
             _instance = new DummyService();
             _container.Register(typeof(DummyService), _instance);
-            _result = _container.Resolve(typeof(DummyService));
+            _result = _container.Resolve<DummyService>();
         };
 
         It should_return_a_non_null_object = () =>

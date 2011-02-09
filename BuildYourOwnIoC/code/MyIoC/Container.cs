@@ -208,4 +208,12 @@ namespace MyIoC
             registrar.Register(type, registration);
         }
     }
+
+    public static class IResolverExtensions
+    {
+        public static T Resolve<T>(this IResolver resolver)
+        {
+            return (T)resolver.Resolve(typeof(T));
+        }
+    }
 }

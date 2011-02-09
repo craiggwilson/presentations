@@ -12,7 +12,7 @@ namespace MyIoC.ContainerSpecs
         static object _result;
 
         Because of = () =>
-            _result = _container.Resolve(typeof(DummyService));
+            _result = _container.Resolve<DummyService>();
 
         It should_return_a_non_null_object = () =>
             _result.ShouldNotBeNull();

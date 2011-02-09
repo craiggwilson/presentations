@@ -13,8 +13,8 @@ namespace MyIoC.ContainerSpecs
 
         Because of = () =>
         {
-            _container.Register(typeof(DummyServiceDependencyA), new DummyServiceDependencyA());
-            _result = _container.Resolve(typeof(DummyService));
+            _container.Register<DummyServiceDependencyA>(new DummyServiceDependencyA());
+            _result = _container.Resolve<DummyService>();
         };
 
         It should_return_a_non_null_object = () =>

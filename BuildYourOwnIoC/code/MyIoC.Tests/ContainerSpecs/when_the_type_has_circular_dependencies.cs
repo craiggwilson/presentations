@@ -13,7 +13,7 @@ namespace MyIoC.ContainerSpecs
 
         Because of = () =>
         {
-            _ex = Catch.Exception(() => _container.Resolve(typeof(DummyService)));
+            _ex = Catch.Exception(() => _container.Resolve<DummyService>());
         };
 
         It should_throw_an_exception = () =>
