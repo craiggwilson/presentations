@@ -6,7 +6,6 @@ using Machine.Specifications;
 
 namespace MyIoC.ContainerSpecs
 {
-    [Subject(typeof(Container))]
     public abstract class In_the_context_of_resolving_by_type
     {
         protected static Container _container;

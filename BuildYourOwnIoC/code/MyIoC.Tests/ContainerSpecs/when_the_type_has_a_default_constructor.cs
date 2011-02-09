@@ -7,7 +7,7 @@ using Machine.Specifications;
 namespace MyIoC.ContainerSpecs
 {
     [Subject("In the context of resolving by type")]
-    public class when_the_type_is_resolvable : In_the_context_of_resolving_by_type
+    public class when_the_type_has_a_default_constructor : In_the_context_of_resolving_by_type
     {
         static object _result;
 
