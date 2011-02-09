@@ -20,41 +20,52 @@ namespace MyIoC
 
     public interface IRegistrar
     {
-        void Register(Type type, object instance);
+        void Register(Type type, Registration registration);
     }
 
     public interface ILifetime
     {
-        object Resolve(IResolver resolver);
+        object GetInstance(ResolutionContext context);
     }
 
     public class SingletonLifetime : ILifetime
     {
-        private readonly object _instance;
+        private object _instance;
+
+        public SingletonLifetime()
+        { }
 
         public SingletonLifetime(object instance)
         {
             _instance = instance;
         }
 
-        public object Resolve(IResolver resolver)
+        public object GetInstance(ResolutionContext context)
         {
+            if (_instance == null)
+                _instance = context.Activate();
             return _instance;
         }
     }
 
     public class TransientLifetime : ILifetime
     {
-        private readonly Type _type;
-
-        public TransientLifetime(Type type)
+        public object GetInstance(ResolutionContext context)
         {
-            _type = type;
+            return context.Activate();
         }
+    }
 
-        public object Resolve(IResolver resolver)
+    public interface IActivator
+    {
+        object Activate(Type type, IResolver resolver);
+    }
+
+    public class Activator : IActivator
+    {
+        public object Activate(Type type, IResolver resolver)
         {
-            var constructors = _type.GetConstructors();
+            var constructors = type.GetConstructors();
             var best = ChooseBestConstructor(constructors);
 
             var args = from p in best.GetParameters()
@@ -66,31 +77,115 @@ namespace MyIoC
 
         protected virtual ConstructorInfo ChooseBestConstructor(IEnumerable<ConstructorInfo> options)
         {
-            //Pick the one with the most arguments...
             return options.OrderByDescending(o => o.GetParameters().Length).Single();
+        }
+    }
+
+    public class ResolutionContext
+    {
+        private IActivator _activator;
+
+        public Registration Registration { get; private set; }
+
+        public IResolver Resolver { get; private set; }
+
+        public ResolutionContext(Registration registration, IResolver resolver, IActivator activator)
+        {
+            Registration = registration;
+            Resolver = resolver;
+            _activator = activator;
+        }
+
+        public object Activate()
+        {
+            return _activator.Activate(Registration.ImplementationType, Resolver);
+        }
+
+        public object GetInstance()
+        {
+            return Registration.GetInstance(this);
+        }
+    }
+
+    public class Registration
+    {
+        private ILifetime _lifetime;
+
+        public Type ImplementationType { get; private set; }
+
+        public Registration(Type implementationType, ILifetime lifetime)
+        {
+            ImplementationType = implementationType;
+            _lifetime = lifetime;
+        }
+
+        public object GetInstance(ResolutionContext context)
+        {
+            return _lifetime.GetInstance(context);
         }
     }
 
     public class Container : IRegistrar, IResolver
     {
-        private readonly ConcurrentDictionary<Type, ILifetime> _registrations;
+        private readonly ConcurrentDictionary<Type, Registration> _registrations;
 
         public Container()
         {
-            _registrations = new ConcurrentDictionary<Type, ILifetime>();
+            _registrations = new ConcurrentDictionary<Type, Registration>();
         }
 
-        public void Register(Type type, object instance)
+        public void Register(Type type, Registration registration)
         {
-            var lifetime = new SingletonLifetime(instance);
-            _registrations.AddOrUpdate(type, lifetime, (t, l) => lifetime);
+            _registrations.AddOrUpdate(type, registration, (t, r) => registration);
         }
 
         public object Resolve(Type type)
         {
-            return _registrations.GetOrAdd(
+            var registration = _registrations.GetOrAdd(
                 type,
-                new TransientLifetime(type)).Resolve(this);
+                new Registration(type, new TransientLifetime()));
+
+            var context = new ResolutionContext(registration, this, new Activator());
+            return context.GetInstance();
+        }
+    }
+
+    public static class IRegistrarExtensions
+    {
+        public static void Register<T>(this IRegistrar registrar, T instance)
+        {
+            Register(registrar, typeof(T), instance);
+        }
+
+        public static void Register(this IRegistrar registrar, Type type, object instance)
+        {
+            var lifetime = new SingletonLifetime(instance);
+            var registration = new Registration(instance.GetType(), lifetime);
+            registrar.Register(type, registration);
+        }
+
+        public static void RegisterSingleton<T, TConcrete>(this IRegistrar registrar)
+        {
+            RegisterSingleton(registrar, typeof(T), typeof(TConcrete));
+        }
+
+        public static void RegisterSingleton(this IRegistrar registrar, Type type, Type concreteType)
+        {
+            var lifetime = new SingletonLifetime();
+            var registration = new Registration(concreteType, lifetime);
+            registrar.Register(type, registration);
+        }
+
+        public static void RegisterTransient<T, TConcrete>(this IRegistrar registrar)
+        {
+            RegisterTransient(registrar, typeof(T), typeof(TConcrete));
+        }
+
+        public static void RegisterTransient(this IRegistrar registrar, Type type, Type concreteType)
+        {
+            var lifetime = new TransientLifetime();
+            var registration = new Registration(concreteType, lifetime);
+            registrar.Register(type, registration);
         }
     }
 }
