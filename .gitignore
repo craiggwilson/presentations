@@ -1,0 +1,9 @@
+obj
+bin
+deploy
+deploy/*
+*.user
+*.suo
+*.cache
+~$*
+
