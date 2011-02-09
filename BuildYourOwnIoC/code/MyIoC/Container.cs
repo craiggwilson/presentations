@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Practices.ServiceLocation;
 
-namespace Byoic
+namespace MyIoC
 {
     /*Goals: 
      * 1) Resolve an instance of an object by type

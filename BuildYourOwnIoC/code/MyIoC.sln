@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Byoic", "Byoic\Byoic.csproj", "{5091D3DA-2638-4442-BE8C-9A6290F90BF8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyIoC", "MyIoC\MyIoC.csproj", "{5091D3DA-2638-4442-BE8C-9A6290F90BF8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Byoic.Tests", "Byoic.Tests\Byoic.Tests.csproj", "{7776DBE2-3E77-43E8-80FC-D1BFA480ADDC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyIoC.Tests", "MyIoC.Tests\MyIoC.Tests.csproj", "{7776DBE2-3E77-43E8-80FC-D1BFA480ADDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
