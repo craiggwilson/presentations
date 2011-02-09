@@ -32,8 +32,6 @@ namespace MyIoC
     {
         Registration Registration { get; }
 
-        IResolver Resolver { get; }
-
         object Activate();
 
         object GetInstance();
@@ -87,32 +85,6 @@ namespace MyIoC
         }
     }
 
-    public class ResolutionContext : IResolutionContext
-    {
-        private IActivator _activator;
-
-        public Registration Registration { get; private set; }
-
-        public IResolver Resolver { get; private set; }
-
-        public ResolutionContext(Registration registration, IResolver resolver, IActivator activator)
-        {
-            Registration = registration;
-            Resolver = resolver;
-            _activator = activator;
-        }
-
-        public object Activate()
-        {
-            return _activator.Activate(Registration.ImplementationType, Resolver);
-        }
-
-        public object GetInstance()
-        {
-            return Registration.GetInstance(this);
-        }
-    }
-
     public class Registration
     {
         private ILifetime _lifetime;
@@ -125,7 +97,7 @@ namespace MyIoC
             _lifetime = lifetime;
         }
 
-        public object GetInstance(ResolutionContext context)
+        public object GetInstance(IResolutionContext context)
         {
             return _lifetime.GetInstance(context);
         }
@@ -142,30 +114,58 @@ namespace MyIoC
 
         public object Resolve(Type type)
         {
-            var resolver = new ContextualResolver(t => _registrations.GetOrAdd(t, new Registration(t, new TransientLifetime())));
-            return resolver.Resolve(type);
+            Func<Type, Registration> registrationFinder = t => _registrations.GetOrAdd(t, new Registration(t, new TransientLifetime()));
+            var context = new ResolutionContext(type, new Activator(), registrationFinder);
+            return context.GetInstance();
         }
 
-        private class ContextualResolver : IResolver
+        private class ResolutionContext : IResolutionContext, IResolver
         {
+            private IActivator _activator;
             private Func<Type, Registration> _registrationFinder;
-            private Stack<Type> _typeChain = new Stack<Type>();
+            private ResolutionContext _parent;
 
-            public ContextualResolver(Func<Type, Registration> registrationFinder)
+            public Registration Registration { get; private set; }
+
+            public ResolutionContext(Type type, IActivator activator, Func<Type, Registration> registrationFinder)
             {
+                Registration = registrationFinder(type);
+                _activator = activator;
                 _registrationFinder = registrationFinder;
+            }
+
+            public object Activate()
+            {
+                return _activator.Activate(Registration.ImplementationType, this);
+            }
+
+            public object GetInstance()
+            {
+                return Registration.GetInstance(this);
             }
 
             public object Resolve(Type type)
             {
-                if (_typeChain.Contains(type))
-                    throw new Exception(string.Format("Circular dependency found when resolving type {0}", type));
-
-                _typeChain.Push(type);
-                var registration = _registrationFinder(type);
-
-                var context = new ResolutionContext(registration, this, new Activator());
+                var context = new ResolutionContext(type, _activator, _registrationFinder);
+                context.SetParent(this);
                 return context.GetInstance();
+            }
+
+            private void SetParent(ResolutionContext parent)
+            {
+                _parent = parent;
+                CheckForCycles();
+            }
+
+            private void CheckForCycles()
+            {
+                var parent = _parent;
+                while (parent != null)
+                {
+                    if (ReferenceEquals(Registration, parent.Registration))
+                        throw new Exception("Cycles detected.");
+                    parent = parent._parent;
+                }
             }
         }
     }
