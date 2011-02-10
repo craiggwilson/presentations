@@ -122,8 +122,7 @@ namespace MyIoC
 
         public object Resolve(Type type)
         {
-            Func<Type, Registration> registrationFinder = LookupRegistration;
-            var context = new ResolutionContext(type, registrationFinder);
+            var context = new ResolutionContext(type, LookupRegistration);
             return context.GetInstance();
         }
 
@@ -137,10 +136,14 @@ namespace MyIoC
             return registration;
         }
 
+        private Registration CreateRegistration(Type type)
+        {
+            return AugmentRegistration(new Registration(type));
+        }
+
         private Registration LookupRegistration(Type type)
         {
-            return _registrations.GetOrAdd(type,
-                t => AugmentRegistration(new Registration(t)));
+            return _registrations.GetOrAdd(type, CreateRegistration);
         }
 
         private class ResolutionContext : IResolutionContext, IResolver
