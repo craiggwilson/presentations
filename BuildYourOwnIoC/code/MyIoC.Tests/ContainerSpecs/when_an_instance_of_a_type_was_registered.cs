@@ -15,7 +15,7 @@ namespace MyIoC.ContainerSpecs
         Establish context = () =>
         {
             _instance = new DummyService();
-            _container.Register(typeof(DummyService), _instance);
+            _container.Register<DummyService>().WithInstance(_instance);
         };
 
         Because of = () =>

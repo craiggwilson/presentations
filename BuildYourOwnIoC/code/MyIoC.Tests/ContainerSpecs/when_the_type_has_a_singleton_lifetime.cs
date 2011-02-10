@@ -14,7 +14,7 @@ namespace MyIoC.ContainerSpecs
 
         Establish context = () =>
         {
-            _container.RegisterSingleton<DummyService, DummyService>();
+            _container.Register<DummyService>().AsSingleton();
         };
 
         Because of = () =>

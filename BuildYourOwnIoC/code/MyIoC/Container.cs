@@ -199,45 +199,6 @@ namespace MyIoC
         }
     }
 
-    public static class IRegistrarExtensions
-    {
-        public static void Register<T>(this IRegistrar registrar, T instance)
-        {
-            Register(registrar, typeof(T), instance);
-        }
-
-        public static void Register(this IRegistrar registrar, Type type, object instance)
-        {
-            var lifetime = new SingletonLifetime(instance);
-            var registration = new Registration(instance.GetType()) { Lifetime = lifetime };
-            registrar.Register(type, registration);
-        }
-
-        public static void RegisterSingleton<T, TConcrete>(this IRegistrar registrar)
-        {
-            RegisterSingleton(registrar, typeof(T), typeof(TConcrete));
-        }
-
-        public static void RegisterSingleton(this IRegistrar registrar, Type type, Type concreteType)
-        {
-            var lifetime = new SingletonLifetime();
-            var registration = new Registration(concreteType) { Lifetime = lifetime };
-            registrar.Register(type, registration);
-        }
-
-        public static void RegisterTransient<T, TConcrete>(this IRegistrar registrar)
-        {
-            RegisterTransient(registrar, typeof(T), typeof(TConcrete));
-        }
-
-        public static void RegisterTransient(this IRegistrar registrar, Type type, Type concreteType)
-        {
-            var lifetime = new TransientLifetime();
-            var registration = new Registration(concreteType) { Lifetime = lifetime };
-            registrar.Register(type, registration);
-        }
-    }
-
     public static class IResolverExtensions
     {
         public static T Resolve<T>(this IResolver resolver)

@@ -12,7 +12,7 @@ namespace MyIoC.ContainerSpecs
         static object _result;
 
         Establish context = () =>
-            _container.Register<DummyServiceDependencyA>(new DummyServiceDependencyA());
+            _container.Register<DummyServiceDependencyA>().WithInstance(new DummyServiceDependencyA());
 
         Because of = () =>
             _result = _container.Resolve<DummyService>();
