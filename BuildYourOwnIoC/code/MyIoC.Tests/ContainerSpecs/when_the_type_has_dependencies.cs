@@ -35,11 +35,8 @@ namespace MyIoC.ContainerSpecs
 
         private class DummyServiceDependencyB
         {
-            public DummyServiceDependencyB(DummyServiceDependencyC c)
+            public DummyServiceDependencyB(DummyServiceDependencyA a)
             { }
         }
-
-        private class DummyServiceDependencyC
-        { }
     }
 }

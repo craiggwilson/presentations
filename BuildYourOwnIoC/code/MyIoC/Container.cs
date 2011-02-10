@@ -25,11 +25,13 @@ namespace MyIoC
 
     public interface IActivator
     {
-        object Activate(Type type, IResolver resolver);
+        object Activate(IResolutionContext context);
     }
 
-    public interface IResolutionContext
+    public interface IResolutionContext : IResolver
     {
+        Type RequestedType { get; }
+
         Registration Registration { get; }
 
         object Activate();
@@ -39,6 +41,7 @@ namespace MyIoC
 
     public class SingletonLifetime : ILifetime
     {
+        private object locker = new object();
         private object _instance;
 
         public SingletonLifetime()
@@ -52,7 +55,15 @@ namespace MyIoC
         public object GetInstance(IResolutionContext context)
         {
             if (_instance == null)
-                _instance = context.Activate();
+            {
+                lock (locker)
+                {
+                    if (_instance == null)
+                    {
+                        _instance = context.Activate();
+                    }
+                }
+            }
             return _instance;
         }
     }
@@ -67,14 +78,14 @@ namespace MyIoC
 
     public class Activator : IActivator
     {
-        public object Activate(Type type, IResolver resolver)
+        public object Activate(IResolutionContext context)
         {
-            var constructors = type.GetConstructors();
+            var constructors = context.Registration.ImplementationType.GetConstructors();
             var best = ChooseBestConstructor(constructors);
 
             var args = from p in best.GetParameters()
                        orderby p.Position
-                       select resolver.Resolve(p.ParameterType);
+                       select context.Resolve(p.ParameterType);
 
             return best.Invoke(args.ToArray());
         }
@@ -87,19 +98,15 @@ namespace MyIoC
 
     public class Registration
     {
-        private ILifetime _lifetime;
+        public IActivator Activator { get; set; }
+
+        public ILifetime Lifetime { get; set; }
 
         public Type ImplementationType { get; private set; }
 
-        public Registration(Type implementationType, ILifetime lifetime)
+        public Registration(Type implementationType)
         {
             ImplementationType = implementationType;
-            _lifetime = lifetime;
-        }
-
-        public object GetInstance(IResolutionContext context)
-        {
-            return _lifetime.GetInstance(context);
         }
     }
 
@@ -109,44 +116,66 @@ namespace MyIoC
 
         public void Register(Type type, Registration registration)
         {
+            registration = AugmentRegistration(registration);
             _registrations.AddOrUpdate(type, registration, (t, r) => registration);
         }
 
         public object Resolve(Type type)
         {
-            Func<Type, Registration> registrationFinder = t => _registrations.GetOrAdd(t, new Registration(t, new TransientLifetime()));
-            var context = new ResolutionContext(type, new Activator(), registrationFinder);
+            Func<Type, Registration> registrationFinder = LookupRegistration;
+            var context = new ResolutionContext(type, registrationFinder);
             return context.GetInstance();
+        }
+
+        private Registration AugmentRegistration(Registration registration)
+        {
+            if (registration.Activator == null)
+                registration.Activator = new Activator();
+            if (registration.Lifetime == null)
+                registration.Lifetime = new TransientLifetime();
+
+            return registration;
+        }
+
+        private Registration LookupRegistration(Type type)
+        {
+            return _registrations.GetOrAdd(type,
+                t => AugmentRegistration(new Registration(t)));
         }
 
         private class ResolutionContext : IResolutionContext, IResolver
         {
-            private IActivator _activator;
             private Func<Type, Registration> _registrationFinder;
             private ResolutionContext _parent;
 
             public Registration Registration { get; private set; }
 
-            public ResolutionContext(Type type, IActivator activator, Func<Type, Registration> registrationFinder)
+            public Type RequestedType { get; private set; }
+
+            public ResolutionContext(Type type, Func<Type, Registration> registrationFinder)
             {
                 Registration = registrationFinder(type);
-                _activator = activator;
+                RequestedType = type;
                 _registrationFinder = registrationFinder;
             }
 
             public object Activate()
             {
-                return _activator.Activate(Registration.ImplementationType, this);
+                return Registration
+                    .Activator
+                    .Activate(this);
             }
 
             public object GetInstance()
             {
-                return Registration.GetInstance(this);
+                return Registration
+                    .Lifetime
+                    .GetInstance(this);
             }
 
             public object Resolve(Type type)
             {
-                var context = new ResolutionContext(type, _activator, _registrationFinder);
+                var context = new ResolutionContext(type, _registrationFinder);
                 context.SetParent(this);
                 return context.GetInstance();
             }
@@ -180,7 +209,7 @@ namespace MyIoC
         public static void Register(this IRegistrar registrar, Type type, object instance)
         {
             var lifetime = new SingletonLifetime(instance);
-            var registration = new Registration(instance.GetType(), lifetime);
+            var registration = new Registration(instance.GetType()) { Lifetime = lifetime };
             registrar.Register(type, registration);
         }
 
@@ -192,7 +221,7 @@ namespace MyIoC
         public static void RegisterSingleton(this IRegistrar registrar, Type type, Type concreteType)
         {
             var lifetime = new SingletonLifetime();
-            var registration = new Registration(concreteType, lifetime);
+            var registration = new Registration(concreteType) { Lifetime = lifetime };
             registrar.Register(type, registration);
         }
 
@@ -204,7 +233,7 @@ namespace MyIoC
         public static void RegisterTransient(this IRegistrar registrar, Type type, Type concreteType)
         {
             var lifetime = new TransientLifetime();
-            var registration = new Registration(concreteType, lifetime);
+            var registration = new Registration(concreteType) { Lifetime = lifetime };
             registrar.Register(type, registration);
         }
     }

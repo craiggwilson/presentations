@@ -46,7 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContainerSpecs\when_the_type_has_dependencies_with_same_dependencies.cs" />
+    <Compile Include="ContainerSpecs\when_the_type_has_a_singleton_lifetime.cs" />
+    <Compile Include="ContainerSpecs\when_the_type_has_a_transient_lifetime.cs" />
     <Compile Include="ContainerSpecs\when_the_type_has_circular_dependencies.cs" />
     <Compile Include="ContainerSpecs\when_the_type_has_dependencies.cs" />
     <Compile Include="ContainerSpecs\when_an_instance_of_a_type_was_registered.cs" />

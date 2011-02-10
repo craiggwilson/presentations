@@ -24,12 +24,8 @@ namespace MyIoC.ContainerSpecs
         It should_return_a_non_null_object = () =>
             _result.ShouldNotBeNull();
 
-        It should_return_an_instance_of_the_type_requested = () =>
-            _result.ShouldBeOfType<DummyService>();
-
         It should_return_the_instance_that_was_registered = () =>
             _result.ShouldBeTheSameAs(_instance);
-
 
         private class DummyService
         { }
