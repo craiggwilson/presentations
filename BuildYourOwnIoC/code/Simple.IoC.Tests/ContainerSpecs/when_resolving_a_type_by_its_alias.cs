@@ -8,14 +8,11 @@ namespace Simple.IoC.Tests.ContainerSpecs
 {
     public class when_resolving_a_type_by_its_alias : ContainerSpecBase
     {
-        static IContainer _container;
         static object _result;
 
         Establish context = () =>
-        {
-            _builder.Register<DummyService>().As<IDummyService>();
-            _container = _builder.Build();
-        };
+            _container.Register<DummyService>().As<IDummyService>();
+
         Because of = () =>
             _result = _container.Resolve(typeof(IDummyService));
 

@@ -8,18 +8,14 @@ namespace Simple.IoC.Tests.ContainerSpecs
 {
     public class when_resolving_a_type_with_unresolvable_dependencies : ContainerSpecBase
     {
-        static IContainer _container;
         static object _result;
 
         Establish context = () =>
-        {
-            _builder.Register<DummyService>()
-                .ActivatedBy(c => new DummyService(1, c.Resolve<DepA>()));
-            _container = _builder.Build();
-        };
+            _container.Register<DummyService>()
+                .ActivateWith(c => new DummyService(3, c.ResolveDependency<DepA>()));
 
         Because of = () =>
-            _result = _container.Resolve<DummyService>();
+            _result = _container.Resolve(typeof(DummyService));
 
         It should_not_return_null = () =>
             _result.ShouldNotBeNull();

@@ -43,18 +43,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContainerSpecBase.cs" />
-    <Compile Include="when_resolving_a_disposable_type.cs" />
-    <Compile Include="when_resolving_a_container_scoped_type_multiple_times_from_the_same_container.cs" />
-    <Compile Include="when_resolving_a_container_scoped_type_multiple_times_from_different_containers.cs" />
+    <Compile Include="ContainerSpecs\ContainerSpecBase.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_singleton_type_multiple_times.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_transient_type_multiple_times.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_type_by_its_alias.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_type_with_cyclic_dependencies.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_type_with_dependencies.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_type_with_unresolvable_dependencies.cs" />
+    <Compile Include="ContainerSpecs\when_resolving_a_type_with_zero_dependencies.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="when_resolving_a_singleton_type_multiple_times.cs" />
-    <Compile Include="when_resolving_a_transient_type_multiple_times.cs" />
-    <Compile Include="when_resolving_a_type_by_an_alias.cs" />
-    <Compile Include="when_resolving_a_type_without_dependencies.cs" />
-    <Compile Include="when_resolving_a_type_with_cyclic_dependencies.cs" />
-    <Compile Include="when_resolving_a_type_with_dependencies.cs" />
-    <Compile Include="when_resolving_a_type_with_unresolvable_dependencies.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Simple.IoC\Simple.IoC.csproj">

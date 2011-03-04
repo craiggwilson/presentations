@@ -4,18 +4,15 @@ using System.Linq;
 using System.Text;
 
 using Machine.Specifications;
-using Simple.IoC.Tests;
 
 namespace Simple.IoC.Tests.ContainerSpecs
 {
     public abstract class ContainerSpecBase
     {
-        protected static ContainerBuilder _builder;
+        protected static Container _container;
 
         Establish context = () =>
-        {
-            _builder = new ContainerBuilder();
-            _builder.AddRegistrationProvider(new AnythingRegistrationProvider());
-        };
+            _container = new Container();
+
     }
 }

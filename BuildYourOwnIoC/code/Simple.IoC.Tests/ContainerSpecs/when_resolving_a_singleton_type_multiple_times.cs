@@ -6,15 +6,13 @@ using Machine.Specifications;
 
 namespace Simple.IoC.Tests.ContainerSpecs
 {
-    public class when_resolving_a_transient_type_multiple_times : ContainerSpecBase
+    public class when_resolving_a_singleton_type_multiple_times : ContainerSpecBase
     {
-        static IContainer _container;
-        
         static object _result1;
         static object _result2;
 
         Establish context = () =>
-            _container = _builder.Build();
+            _container.Register<DummyService>().Singleton();
 
         Because of = () =>
         {
@@ -24,7 +22,7 @@ namespace Simple.IoC.Tests.ContainerSpecs
 
         It should_not_return_the_same_instances = () =>
         {
-            _result1.ShouldNotBeTheSameAs(_result2);
+            _result1.ShouldBeTheSameAs(_result2);
         };
 
         private class DummyService { }

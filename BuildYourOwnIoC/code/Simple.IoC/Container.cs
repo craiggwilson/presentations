@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Collections.Concurrent;
-using System.Reflection;
 
 namespace Simple.IoC
 {
@@ -11,105 +9,66 @@ namespace Simple.IoC
 
     public interface IActivator
     {
-        object Activate(IResolutionContext context);
+        object Activate(ResolutionContext context);
     }
 
     public class ReflectionActivator : IActivator
     {
-        public object Activate(IResolutionContext context)
+        public object Activate(ResolutionContext context)
         {
-            var ctor = GetBestConstructor(context.Registration.ConcreteType);
-
+            var ctor = context.Registration.ConcreteType.GetConstructors()
+                            .OrderByDescending(c => c.GetParameters().Length)
+                            .First();
+            
             var parameters = ctor.GetParameters();
             var args = new object[parameters.Length];
             for (int i = 0; i < args.Length; i++)
-            {
-                args[i] = context.Resolve(parameters[i].ParameterType);
-            }
+                args[i] = context.ResolveDependency(parameters[i].ParameterType);
 
-            return Activator.CreateInstance(context.Registration.ConcreteType, args);
+            return ctor.Invoke(args);
+        }
+    }
+
+    public class DelegateActivator : IActivator
+    {
+        private readonly Func<ResolutionContext, object> _activator;
+
+        public DelegateActivator(Func<ResolutionContext, object> activator)
+        {
+            _activator = activator;
         }
 
-        protected virtual ConstructorInfo GetBestConstructor(Type type)
+        public object Activate(ResolutionContext context)
         {
-            var ctors = type.GetConstructors();
-            return ctors.OrderByDescending(x => x.GetParameters().Length).First();
+            return _activator(context);
         }
     }
 
     #endregion
 
-    #region Lifetime
+    #region Lifetimes
 
     public interface ILifetime
     {
-        object GetInstance(IResolutionContext context);
+        object GetInstance(ResolutionContext context);
     }
 
-    public abstract class LifetimeBase : ILifetime
+    public class TransientLifetime : ILifetime
     {
-        public abstract object GetInstance(IResolutionContext context);
-
-        protected void RegisterInstanceForDisposalIfNecessary(IContainer container, object instance)
+        public object GetInstance(ResolutionContext context)
         {
-            var disposable = instance as IDisposable;
-            if (disposable != null)
-                container.RegisterContainerDisposalCallback(() => disposable.Dispose());
+            return context.Activate();
         }
     }
 
-    public class TransientLifetime : LifetimeBase
+    public class SingletonLifetime : ILifetime
     {
-        public override object GetInstance(IResolutionContext context)
-        {
-            var instance = context.Activate();
-            RegisterInstanceForDisposalIfNecessary(context.Container, instance);
-            return instance;
-        }
-    }
-
-    public class ContainerScopedLifetime : LifetimeBase
-    {
-        private ConcurrentDictionary<Guid, object> _instances = new ConcurrentDictionary<Guid, object>();
-
-        public override object GetInstance(IResolutionContext context)
-        {
-            return _instances.GetOrAdd(context.Container.Id, g =>
-            {
-                var i = context.Activate();
-                context.Container.RegisterContainerDisposalCallback(() => ContainerDisposed(g));
-                RegisterInstanceForDisposalIfNecessary(context.Container, i);
-                return i;
-            });
-        }
-
-        private void ContainerDisposed(Guid containerId)
-        {
-            object value;
-            _instances.TryRemove(containerId, out value);
-        }
-    }
-
-    public class SingletonLifetime : LifetimeBase
-    {
-        private object locker = new object();
         private object _instance;
 
-        public override object GetInstance(IResolutionContext context)
+        public object GetInstance(ResolutionContext context)
         {
             if (_instance == null)
-            {
-                lock (locker)
-                {
-                    if (_instance == null)
-                    {
-                        _instance = context.Activate();
-                        var rootContainer = context.Container.GetRootContainer();
-                        RegisterInstanceForDisposalIfNecessary(rootContainer, _instance);
-                    }
-                }
-            }
-
+                _instance = context.Activate();
             return _instance;
         }
     }
@@ -120,318 +79,140 @@ namespace Simple.IoC
 
     public class Registration
     {
-        public IActivator Activator { get; set; }
+        public Type ConcreteType { get; private set; }
+
+        public IActivator Activator { get; private set; }
 
         public ISet<Type> Aliases { get; private set; }
 
-        public Type ConcreteType { get; private set; }
-
-        public ILifetime Lifetime { get; set; }
+        public ILifetime Lifetime { get; private set; }
 
         public Registration(Type concreteType)
         {
+            ConcreteType = concreteType;
             Activator = new ReflectionActivator();
+            Lifetime = new TransientLifetime();
+
             Aliases = new HashSet<Type>();
             Aliases.Add(concreteType);
-            ConcreteType = concreteType;
-            Lifetime = new TransientLifetime();
+        }
+
+        public Registration ActivateWith(IActivator activator)
+        {
+            Activator = activator;
+            return this;
+        }
+
+        public Registration ActivateWith(Func<ResolutionContext, object> activator)
+        {
+            Activator = new DelegateActivator(activator);
+            return this;
+        }
+
+        public Registration As<T>()
+        {
+            Aliases.Add(typeof(T));
+            return this;
+        }
+
+        public Registration Singleton()
+        {
+            Lifetime = new SingletonLifetime();
+            return this;
         }
     }
 
-    public static class RegistrationExtensions
+    #endregion
+
+    #region ResolutionContext
+
+    public class ResolutionContext
     {
-        public static Registration ActivatedBy(this Registration registration, IActivator activator)
+        private readonly Func<Type, Registration> _registrationFinder;
+
+        private ResolutionContext _parent;
+
+        public Registration Registration { get; private set; }
+
+        public ResolutionContext(Registration registration, Func<Type, Registration> registrationFinder)
         {
-            registration.Activator = activator;
-            return registration;
+            Registration = registration;
+            _registrationFinder = registrationFinder;
         }
 
-        public static Registration ActivatedBy(this Registration registration, Func<IResolutionContext, object> activator)
+        public object Activate()
         {
-            registration.Activator = new DelegateActivator(activator);
-            return registration;
+            return Registration.Activator.Activate(this);
         }
 
-        public static Registration As<T>(this Registration registration)
+        public object GetInstance()
         {
-            return As(registration, typeof(T));
+            return Registration.Lifetime.GetInstance(this);
         }
 
-        public static Registration As(this Registration registration, Type alias)
+        public object ResolveDependency(Type type)
         {
-            registration.Aliases.Add(alias);
-            return registration;
+            var registration = _registrationFinder(type);
+            var context = new ResolutionContext(registration, _registrationFinder);
+            context.SetParent(this);
+            return context.GetInstance();
         }
 
-        public static Registration ContainerScoped(this Registration registration)
+        public T ResolveDependency<T>()
         {
-            registration.Lifetime = new ContainerScopedLifetime();
-            return registration;
+            return (T)ResolveDependency(typeof(T));
         }
 
-        public static Registration Singleton(this Registration registration)
+        private void SetParent(ResolutionContext parent)
         {
-            registration.Lifetime = new SingletonLifetime();
-            return registration;
-        }
-
-        public class DelegateActivator : IActivator
-        {
-            private Func<IResolutionContext, object> _activator;
-
-            public DelegateActivator(Func<IResolutionContext, object> activator)
+            _parent = parent;
+            while (parent != null)
             {
-                _activator = activator;
-            }
+                if (ReferenceEquals(Registration, parent.Registration))
+                    throw new Exception("Cycles found");
 
-            public object Activate(IResolutionContext context)
-            {
-                return _activator(context);
+                parent = parent._parent;
             }
         }
     }
 
-
     #endregion
 
-    #region Registration Provider
-
-    public interface IRegistrationProvider
-    {
-        IEnumerable<Registration> GetRegistrations(Type type);
-    }
-
-    public class AnythingRegistrationProvider : IRegistrationProvider
-    {
-        public IEnumerable<Registration> GetRegistrations(Type type)
-        {
-            if (!type.IsAbstract && type.IsClass)
-            {
-                yield return new Registration(type);
-            }
-        }
-    }
-
-
-    #endregion
-
-    #region Resolution Context
-
-    public interface IResolutionContext
-    {
-        IContainer Container { get; }
-
-        Registration Registration { get; }
-
-        object Resolve(Type type);
-    }
-
-    public static class ResolutionContextExtensions
-    {
-        public static T Resolve<T>(this IResolutionContext context)
-        {
-            return (T)context.Resolve(typeof(T));
-        }
-
-        public static object Activate(this IResolutionContext context)
-        {
-            return context.Registration.Activator.Activate(context);
-        }
-
-        public static object GetInstance(this IResolutionContext context)
-        {
-            return context.Registration.Lifetime.GetInstance(context);
-        }
-    }
-
-    #endregion
-
-    #region Container
-
-    public interface IContainer : IDisposable
-    {
-        Guid Id { get; }
-
-        IContainer Parent { get; }
-
-        IContainer CreateChildContainer();
-
-        void RegisterContainerDisposalCallback(Action callback);
-
-        object Resolve(Type type);
-    }
-
-    public static class ContainerExtensions
-    {
-        public static IContainer GetRootContainer(this IContainer container)
-        {
-            container = container.Parent;
-            while (container != null)
-                container = container.Parent;
-
-            return container;
-        }
-
-        public static T Resolve<T>(this IContainer container)
-        {
-            return (T)container.Resolve(typeof(T));
-        }
-    }
-
-    #endregion
-
-    #region ContainerBuilder
-
-    public class ContainerBuilder : IRegistrationProvider
+    public class Container
     {
         private List<Registration> _registrations = new List<Registration>();
-        private List<IRegistrationProvider> _registrationProviders = new List<IRegistrationProvider>();
 
-        public void AddRegistration(Registration registration)
-        {
-            _registrations.Add(registration);
-        }
-
-        public void AddRegistrationProvider(IRegistrationProvider registrationProvider)
-        {
-            _registrationProviders.Add(registrationProvider);
-        }
-
-        public IContainer Build()
-        {
-            return new Container(this);
-        }
-
-        public IEnumerable<Registration> GetRegistrations(Type type)
-        {
-            return _registrations.Where(x => x.Aliases.Contains(type))
-                .Union(_registrationProviders.SelectMany(x => x.GetRegistrations(type)));
-        }
-
-        private class Container : IContainer
-        {
-            private ConcurrentQueue<Action> _containerDisposalCallbacks;
-            private ConcurrentDictionary<Type, List<Registration>> _registrations;
-            private IRegistrationProvider _registrationProvider;
-
-            public Guid Id { get; private set; }
-
-            public IContainer Parent { get; private set; }
-
-            public Container(IRegistrationProvider registrationProvider)
-            {
-                Id = Guid.NewGuid();
-                _containerDisposalCallbacks = new ConcurrentQueue<Action>();
-                _registrations = new ConcurrentDictionary<Type, List<Registration>>();
-                _registrationProvider = registrationProvider;
-            }
-
-            private Container(Container parent)
-                : this(parent._registrationProvider)
-            {
-                Parent = parent;
-            }
-
-            public IContainer CreateChildContainer()
-            {
-                return new Container(this);
-            }
-
-            public void Dispose()
-            {
-                foreach (var callback in _containerDisposalCallbacks)
-                    callback();
-            }
-
-            public void RegisterContainerDisposalCallback(Action callback)
-            {
-                _containerDisposalCallbacks.Enqueue(callback);
-            }
-
-            public object Resolve(Type type)
-            {
-                var context = new ResolutionContext(this, type, GetRegistrations);
-                return context.GetInstance();
-            }
-
-            private IEnumerable<Registration> GetRegistrations(Type type)
-            {
-                return _registrations.GetOrAdd(type, t => _registrationProvider.GetRegistrations(type).ToList());
-            }
-
-            private class ResolutionContext : IResolutionContext
-            {
-                private ResolutionContext _parent;
-                private Func<Type, IEnumerable<Registration>> _registrationFinder;
-
-                public IContainer Container { get; private set; }
-
-                public Registration Registration { get; private set; }
-
-                public ResolutionContext(IContainer container, Type type, Func<Type, IEnumerable<Registration>> registrationFinder)
-                {
-                    Container = container;
-                    _registrationFinder = registrationFinder;
-
-                    var list = _registrationFinder(type);
-                    if (!list.Any())
-                        throw new ContainerException(string.Format("No registrations could be found or created for type '{0}'", type));
-
-                    Registration = list.First();
-                }
-
-                public object Resolve(Type type)
-                {
-                    var context = new ResolutionContext(Container, type, _registrationFinder);
-                    context.SetParent(this);
-                    return context.GetInstance();
-                }
-
-                private void SetParent(ResolutionContext parent)
-                {
-                    _parent = parent;
-                    while (parent != null)
-                    {
-                        if (ReferenceEquals(Registration, parent.Registration))
-                            throw new ContainerException(string.Format("Cycles found when resolving type '{0}'.", Registration.ConcreteType));
-
-                        parent = parent._parent;
-                    }
-                }
-            }
-        }
-    }
-
-    public static class ContainerBuilderExtensions
-    {
-        public static Registration Register<T>(this ContainerBuilder builder)
-        {
-            return Register(builder, typeof(T));
-        }
-
-        public static Registration Register(this ContainerBuilder builder, Type type)
+        public Registration Register(Type type)
         {
             var registration = new Registration(type);
-            builder.AddRegistration(registration);
+            _registrations.Add(registration);
+            return registration;
+        }
+
+        public Registration Register<T>()
+        {
+            return Register(typeof(T));
+        }
+
+        public object Resolve(Type type)
+        {
+            var registration = FindRegistration(type);
+            var context = new ResolutionContext(registration, FindRegistration);
+            return context.GetInstance();
+        }
+
+        public T Resolve<T>()
+        {
+            return (T)Resolve(typeof(T));
+        }
+
+        private Registration FindRegistration(Type type)
+        {
+            var registration = _registrations.FirstOrDefault(r => r.Aliases.Contains(type));
+            if (registration == null)
+                registration = Register(type);
+
             return registration;
         }
     }
-
-    #endregion
-
-    #region Exceptions
-
-    [Serializable]
-    public class ContainerException : Exception
-    {
-        public ContainerException() { }
-        public ContainerException(string message) : base(message) { }
-        public ContainerException(string message, Exception inner) : base(message, inner) { }
-        protected ContainerException(
-          System.Runtime.Serialization.SerializationInfo info,
-          System.Runtime.Serialization.StreamingContext context)
-            : base(info, context) { }
-    }
-
-    #endregion
 }
