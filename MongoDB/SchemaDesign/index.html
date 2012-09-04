@@ -44,7 +44,7 @@
 
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
-				<section data-state="title-slide" data-markdown>
+				<section data-state="title-slide">
 					<h1 class="logo">MongoDB</h1>
 					<h2>Schema Design By Example</h2>
 
@@ -53,7 +53,7 @@
 					twitter: [craiggwilson](http://twitter.com/craiggwilson)
 				</section>
 
-				<section data-state	data-markdown>
+				<section>
 					<h1>Today's Talk</h1>
 
 					<ul>
@@ -64,13 +64,13 @@
 					</ul>
 				</section>
 
-				<section data-state	data-markdown>
+				<section>
 					<h1>Why Schema Design is Important</h1>
 
 					blah blah blah
 				</section>
 
-				<section data-state	data-markdown>
+				<section>
 					<h1>Questions to Ask Yourself</h1>
 
 					<ul>
@@ -81,7 +81,7 @@
 					</ul>
 				</section>
 
-				<section data-state	data-markdown>
+				<section>
 					<h1>Available Schema Elements</h1>
 
 					<ul> 
@@ -118,34 +118,34 @@
 					</ul>
 				</section>
 
-				<section data-state data-markdown>
-					<section data-markdown>
+				<section>
+					<section>
 						<h1>Example - Library Application</h1>
 
 						This is a personal library application used to organize your book collection.
 					</section>
-					<section data-markdown>
+					<section>
 						(Show a screenshot or working copy of the app)
 					</section>
 				</section>
 
-				<section data-state data-markdown class="center-image">
-					<section data-markdown>
+				<section class="center-image">
+					<section>
 						<h1>Schema</h1>
 
 						<img src="http://yuml.me/28ffd2ae" />
 					</section>
-					<section data-markdown>
+					<section>
 						<h1>Schema - Book</h1>
 						<pre><code class="language-javascript mid-size">
 book = {
-  _id: "ObjectId",
+  _id: "int",
   title: "string",
   *author: "ObjectId",
   isbn: "string",
   publisher: {
     name: "string",
-    date: "timestampe",
+    date: "timestamp",
     city: "string"
   },
   available: "boolean",
@@ -153,38 +153,172 @@ book = {
   summary: "string",
   subjects: ["string"]
   notes: [{
-  	*user_id: "ObjectId", 
+  	*user: "int",
   	note: "string"
   }],
   language: "string"
 }
 						</code></pre>
 					</section>
-					<section data-markdown>
+					<section>
 						<h1>Schema - Author</h1>
 						<pre><code class="language-javascript mid-size">
 author = {
-	_id: "ObjectId",
+	_id: "int",
 	first_name: "string",
 	last_name: "string"
 }
 						</code></pre>
 					</section>
-					<section data-markdown>
+					<section>
 						<h1>Schema - User</h1>
 						<pre><code class="language-javascript mid-size">
 user = {
-	_id: "ObjectId",
+	_id: "int",
 	username: "string",
+	signup_date: "UTC DateTime"
 }
 						</code></pre>
 					</section>
 				</section>
 
-				<section data-state	data-markdown>
-					<h1>Query Samples</h1>
+				<section>
+					<section>
+						<h1>Query Samples</h1>
 
-					(Show some queries)
+						<pre><code class="language-javascript mid-size">
+> db.authors.findOne()
+{
+	_id : 1,
+	first_name : "F. Scott",
+	last_name : "Fitgerald"
+}
+
+> db.users.findOne()
+{
+	_id : 1,
+	username : "jmcjack",
+	signup_date : ISODate("2011-09-19T00:00:00Z")
+}
+						</code></pre>
+					</section>
+					<section>
+						<pre><code class="language-javascript small-size">
+> db.books.findOne()
+{
+	_id : 1,
+	title : "The Great Gatsby",
+	author : ObjectId("50056fa73005c8079f3cd96b"),
+	isbn : "9781857150193",
+	available : true,
+	publisher : 
+	{
+		publisher_name : "Everyman’s Library",
+		date : ISODate("1991-09-19T00:00:00Z"),
+		city : "London",
+	},
+	pages : 176,
+	summary : "Set in the post-Great War...",
+	subjects : ["Love stories", "1920s", "Jazz Age"],
+	notes : [
+		{ user : ObjectId("50056fa73005c8079f3cd94f"), note : "One of the best..."},
+		{ user : ObjectId("50056fa73005c8079f3cd908"), note : "It’s hard to..."}
+	],
+	language : "English"
+}
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h1>Applied Principles and Patterns</h1>
+						<div class="fragment">
+							<h3>Principle: Schema-less does NOT mean No-Schema</h3>
+							<ul>
+								<li>Application-enforced Schema</li>
+								<li>Just because you can doesn't mean you should.</li>
+							</ul>
+						</div>
+					</section>
+					<section>
+						<h3>Principle: Use Rich Documents</h3>
+						<ul>
+							<li class="fragment">
+								Pattern: Embedded Documents
+								<pre><code class="language-javascript small-size">
+book.publisher : 
+{
+	publisher_name : "Everyman’s Library",
+	date : ISODate("1991-09-19T00:00:00Z"),
+	city : "London",
+},
+								</code></pre>
+							</li>
+							<li class="fragment">
+								Pattern: Embedded Arrays
+								<pre><code class="language-javascript small-size">
+book.subjects : ["Love stories", "1920s", "Jazz Age"],
+								</code></pre>
+							</li>
+							<li class="fragment">
+								Pattern: Embedded Arrays of Documents
+								<pre><code class="language-javascript small-size">
+book.notes : [
+	{ user : 2, note : "One of the best..."},
+	{ user : 3, note : "It’s hard to..."}
+],
+								</code></pre>
+							</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Pattern: Linking</h3>
+						<ul>
+							<li class="fragment">
+								Top-Level
+								<pre><code class="language-javascript small-size">
+book.author : 1,
+								</code></pre>
+							</li>
+							<li class="fragment">
+								Embedded
+								<pre><code class="language-javascript small-size">
+book.notes[0].user : 2
+								</code></pre>
+							</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h1>More Queries</h1>
+						<h3>Find all the books by an author
+						<pre><code class="language-javascript small-size">
+> db.books.find({author: 1})
+{
+		
+}
+{
+
+}
+						</code></pre>	
+					</section>
+					<section>
+						<h3>Find all the books by an author whose name starts with F</h3>
+						<pre><code class="language-javascript small-size">
+> authors = db.authors.find( { first_name : /^f.*/i }, {_id : 1})
+
+> authorIds = authors.map(function(x) { return x._id; })
+
+> db.books.find({author: { $in : authorIds } })
+{
+		
+}
+{
+
+}
+						</code></pre>		
+					</section>
 				</section>
 			</div>
 
