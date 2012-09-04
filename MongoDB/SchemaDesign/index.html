@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Schema Design By Example</title>
+
+		<meta name="description" content="Schema Design by Example">
+		<meta name="author" content="10gen">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<link href='http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+
+		<link rel="stylesheet" href="css/main.css">
+		<link rel="stylesheet" href="css/theme/mongodb.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Replication based overrides -->
+		<link rel="stylesheet" href="css/replication.css">
+
+		<script>
+			// If the query includes 'print-pdf' we'll use the PDF print sheet
+			var print = ( window.location.search.match( /print-pdf/gi ) ? true : false );
+			document.write( '<link rel="stylesheet" href="css/print/' + ( print ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+			if (print) { document.querySelector( 'html' ).classList.add('print');}
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Used to fade in a background when a specific slide state is reached -->
+			<div class="state-background"></div>
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section data-state="title-slide" data-markdown>
+					<h1 class="logo">MongoDB</h1>
+					<h2>Schema Design By Example</h2>
+
+					Craig Wilson - <craig.wilson@10gen.com>
+
+					twitter: [craiggwilson](http://twitter.com/craiggwilson)
+				</section>
+
+				<section data-state	data-markdown>
+					<h1>Today's Talk</h1>
+
+					<ul>
+						<li>Why schema design is important.</li>
+						<li>Questions should you ask yourself when designing a schema.</li>
+						<li>Schema elements available during design.</li>
+						<li>Examples.</li>
+					</ul>
+				</section>
+
+				<section data-state	data-markdown>
+					<h1>Why Schema Design is Important</h1>
+
+					blah blah blah
+				</section>
+
+				<section data-state	data-markdown>
+					<h1>Questions to Ask Yourself</h1>
+
+					<ul>
+						<li class="fragment">Will your application be read or write intensive?</li>
+						<li class="fragment">How do you anticipate your documents changing over time?</li>
+						<li class="fragment">Will your documents grow over time?</li>
+						<li class="fragment">Do you anticipate needing to shard your data?</li>
+					</ul>
+				</section>
+
+				<section data-state	data-markdown>
+					<h1>Available Schema Elements</h1>
+
+					<ul> 
+						<li class="fragment">
+							Primitive Types
+							<ul>
+								<li>Double</li>
+								<li>UTF-8 String</li>
+								<li>
+									Binary
+									<ul>
+										<li>Raw</li>
+										<li>Guid
+										<li>MD5</li>
+									</ul>
+								</li>
+								<li>ObjectId</li>
+								<li>Boolean</li>
+								<li>UTC DateTime</li>
+								<li>Null</li>
+								<li>Regular Expression</li>
+								<li>32-bit Integer</li>
+								<li>Timestamp</li>
+								<li>64-bit Integer</li>
+							</ul>
+						</li>
+						<li class="fragment">
+							Rich Types
+							<ul>
+								<li>Documents</li>
+								<li>Arrays</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+
+				<section data-state data-markdown>
+					<section data-markdown>
+						<h1>Example - Library Application</h1>
+
+						This is a personal library application used to organize your book collection.
+					</section>
+					<section data-markdown>
+						(Show a screenshot or working copy of the app)
+					</section>
+				</section>
+
+				<section data-state data-markdown class="center-image">
+					<section data-markdown>
+						<h1>Schema</h1>
+
+						<img src="http://yuml.me/28ffd2ae" />
+					</section>
+					<section data-markdown>
+						<h1>Schema - Book</h1>
+						<pre><code class="language-javascript mid-size">
+book = {
+  _id: "ObjectId",
+  title: "string",
+  *author: "ObjectId",
+  isbn: "string",
+  publisher: {
+    name: "string",
+    date: "timestampe",
+    city: "string"
+  },
+  available: "boolean",
+  pages: "int",
+  summary: "string",
+  subjects: ["string"]
+  notes: [{
+  	*user_id: "ObjectId", 
+  	note: "string"
+  }],
+  language: "string"
+}
+						</code></pre>
+					</section>
+					<section data-markdown>
+						<h1>Schema - Author</h1>
+						<pre><code class="language-javascript mid-size">
+author = {
+	_id: "ObjectId",
+	first_name: "string",
+	last_name: "string"
+}
+						</code></pre>
+					</section>
+					<section data-markdown>
+						<h1>Schema - User</h1>
+						<pre><code class="language-javascript mid-size">
+user = {
+	_id: "ObjectId",
+	username: "string",
+}
+						</code></pre>
+					</section>
+				</section>
+
+				<section data-state	data-markdown>
+					<h1>Query Samples</h1>
+
+					(Show some queries)
+				</section>
+			</div>
+
+			<!-- The navigational controls UI -->
+			<aside class="controls">
+				<a class="left" href="#">&#x25C4;</a>
+				<a class="right" href="#">&#x25BA;</a>
+				<a class="up" href="#">&#x25B2;</a>
+				<a class="down" href="#">&#x25BC;</a>
+			</aside>
+
+			<!-- 10gen footer -->
+			<div class="footer"></div>
+
+			<!-- Presentation progress bar -->
+			<div class="progress"><span></span></div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+
+				transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/linear(2d)
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/highlight.js', async: true, callback: function() { window.hljs.initHighlightingOnLoad(); } },
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'lib/js/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'lib/js/data-markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'socket.io/socket.io.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
+					{ src: 'plugin/speakernotes/client.js', async: true, condition: function() { return window.location.host === 'localhost:1947'; } },
+				]
+			});
+
+			/* Set slide classes as well so we can print backgrounds and
+			   See them in the overview modes
+			*/
+			var dataStates = document.querySelectorAll( '[data-state]' );
+			for (var i = 0; i < dataStates.length; i++ ) {
+				var element = dataStates[i];
+				var slideState = element.getAttribute( 'data-state' );
+				if (!slideState) { continue; }
+				var classList = slideState.split(' ');
+				for( var x = 0; x < classList.length; x++ ) {
+					console.log(classList[x], element.classList, element);
+					element.classList.add( classList[x] );
+				}
+			}
+
+		</script>
+
+	</body>
+</html>
