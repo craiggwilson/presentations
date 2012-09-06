@@ -137,7 +137,7 @@
 					</section>
 					<section>
 						<h1>Schema - Book</h1>
-						<pre><code class="language-javascript mid-size">
+						<pre><code class="language-javascript small-size">
 book = {
   _id: "int",
   title: "string",
@@ -162,7 +162,7 @@ book = {
 					</section>
 					<section>
 						<h1>Schema - Author</h1>
-						<pre><code class="language-javascript mid-size">
+						<pre><code class="language-javascript small-size">
 author = {
 	_id: "int",
 	first_name: "string",
@@ -172,7 +172,7 @@ author = {
 					</section>
 					<section>
 						<h1>Schema - User</h1>
-						<pre><code class="language-javascript mid-size">
+						<pre><code class="language-javascript small-size">
 user = {
 	_id: "int",
 	username: "string",
@@ -186,7 +186,7 @@ user = {
 					<section>
 						<h1>Query Samples</h1>
 
-						<pre><code class="language-javascript mid-size">
+						<pre><code class="language-javascript small-size">
 > db.authors.findOne()
 {
 	_id : 1,
@@ -235,8 +235,33 @@ user = {
 						<div class="fragment">
 							<h3>Principle: Schema-less does NOT mean No-Schema</h3>
 							<ul>
-								<li>Application-enforced Schema</li>
-								<li>Just because you can doesn't mean you should.</li>
+								<li class="fragment">
+									Application-enforced Schema
+									<pre><code class="language-javascript small-size">
+user = {
+	_id: "int",
+	username: "string",
+	signup_date: "UTC DateTime"
+}
+									</code></pre>
+								</li>
+								<li class="fragment">
+									Just because you can doesn't mean you should.
+									<pre><code class="language-javascript small-size">
+> db.everything.find()
+{
+	_id : 1,
+	first_name : "Jim",
+	last_name : "McJim"	
+}
+{
+	_id : "'66 mustang",
+	make : "Ford",
+	model : "Mustang",
+	year : "1966"
+}
+									</code></pre>
+								</li>
 							</ul>
 						</div>
 					</section>
@@ -272,18 +297,17 @@ book.notes : [
 						</ul>
 					</section>
 					<section>
-						<h3>Pattern: Linking</h3>
+						<h3>Principle: Take Advantage of Immutable Data</h3>
 						<ul>
 							<li class="fragment">
-								Top-Level
+								Pattern: Embedded Documents
 								<pre><code class="language-javascript small-size">
-book.author : 1,
-								</code></pre>
-							</li>
-							<li class="fragment">
-								Embedded
-								<pre><code class="language-javascript small-size">
-book.notes[0].user : 2
+book.publisher : 
+{
+	publisher_name : "Everyman’s Library",
+	date : ISODate("1991-09-19T00:00:00Z"),
+	city : "London",
+},
 								</code></pre>
 							</li>
 						</ul>
@@ -292,19 +316,48 @@ book.notes[0].user : 2
 				<section>
 					<section>
 						<h1>More Queries</h1>
-						<h3>Find all the books by an author
+						<h3>As a user, I want to see all the books by a specific author</h3>
 						<pre><code class="language-javascript small-size">
-> db.books.find({author: 1})
+> author = db.authors.findOne({first_name : "F. Scott", last_name : "Fitzgerald"});
+
+> db.books.find({author: author._id})
 {
-		
+	...	
 }
 {
-
+	...
 }
 						</code></pre>	
 					</section>
 					<section>
-						<h3>Find all the books by an author whose name starts with F</h3>
+						<h3>As a user, I want to search for books by title</h3>
+						<pre><code class="language-javascript small-size">
+> db.books.find({title: "The Great Gatsby"})
+{
+	...	
+}
+{
+	...
+}
+						</code></pre>
+					</section>
+					<section>
+						<h3>As a user, I want to see all the books in which I have made notes</h3>
+						<pre><code class="language-javascript small-size">
+> db.books.find({notes.user: 1})
+{
+	...	
+}
+{
+	...
+}
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h1>Schema Evolution 1</h1>
+						<h3>As a user, I want to search for books by author</h3>
 						<pre><code class="language-javascript small-size">
 > authors = db.authors.find( { first_name : /^f.*/i }, {_id : 1})
 
@@ -312,12 +365,138 @@ book.notes[0].user : 2
 
 > db.books.find({author: { $in : authorIds } })
 {
-		
+	...	
 }
 {
-
+	...
 }
-						</code></pre>		
+						</code></pre>
+					</section>
+					<section>
+						<h3>Principle: Documents Represent Query Patterns (Heavy-Reads)</h3>
+						<ul>
+							<li class="fragment">
+								Pattern: Partially Embedded Documents
+								<pre><code class="language-javascript small-size">
+book = {
+  _id: "int",
+  title: "string",
+  author: {
+  	*author : "int",
+  	name : "string"
+  },
+  ...
+}
+								</code></pre>
+							</li>
+						</ul>
+					</section>
+					<section>
+						<h3>As a user, I want to search for <code>books</code> by <code>author</code></h3>
+						<pre><code class="language-javascript small-size">
+> db.books.find({author.name : /^f.*/i })
+{
+	...	
+}
+{
+	...
+}
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h1>Schema Evolution 2</h1>
+						<h3>As a user, I want to add notes to a book</h3>
+						<pre><code class="language-javascript small-size">
+> note = { user: 1, "I did NOT like this book." }
+
+> db.books.update({ _id : 1 }, { $push : { notes : note }})
+						</code></pre>
+					</section>
+					<section>
+						<h3>Principle: Take Advantage of Atomic Operations</h3>
+						<ul class="fragment">
+							<li>$set - set a value</li>
+							<li>$unset - unsets a value</li>
+							<li>$inc - increment an integer</li>
+							<li>$push - append a value to an array</li>
+							<li>$pushAll - append several values to an array</li>
+							<li>$pull - remove a value from an array</li>
+							<li>$pullAll - remove several values from an array</li>
+							<li>$bit - bitwise operations</li>
+							<li>$addToSet - adds a value to a set if it doesn't already exist</li>
+							<li>$rename - renames a field</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Anti-pattern: Continually Growing Documents (Heavy-Writes)</h3>
+						<ul>
+							<li>(Describe issues with continually growing documents)</li>
+							<li>Movement on Disk</li>
+							<li>Large Documents</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Possible Solution</h3>
+						<ul>
+							<li>
+								Move <code>notes</code> to another document
+								<pre><code class="language-javascript small-size">
+book = {
+  _id: "int",
+  ... // remove the notes field
+}
+
+bookNotes = {
+  _id : "int", // this will be the same as the book id...
+  notes : [{
+    *user : "int",
+    note : "string"
+  }]
+}
+								</code></pre>
+							</li>
+							<li class="fragment">Keeps the <code>book</code> document size consistent</li>
+							<li class="fragment">Queries for <code>books</code> don't return all the <code>notes</code></li>
+							<li class="fragment">Still suffers from a continually growing <code>bookNote</code> document</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Pattern: Bucketing</h3>
+						<ul>
+							<li class="fragment">
+								<code>bookNotes</code> contains a maximum number of documents
+								<pre><code class="language-javascript small-size">
+bookNotes = {
+  _id : "int", 
+  book: "int", // this will be the same as the book id...
+  note_count: "int",
+  last_changed : "UTC datetime",
+  notes : [{
+    *user : "int",
+    note : "string"
+  }]
+}
+								</code></pre>
+							</li>
+							<li class="fragment">
+								Still use atomic operations to update an existing document or start a new one
+								<pre><code class="language-javascript small-size">
+> note = { user: 1, "I did NOT like this book." }
+
+> db.bookNotes.update({
+	{ book : 1, note_count { $lt : 10 } },
+	{ 
+		$inc : { note_count : 1 }, 
+		$push { notes : note }, 
+		$set : { last_changed : new Date() } 
+	},
+	true // upsert
+})
+							</code></pre>
+							</li>
+						</ul>
 					</section>
 				</section>
 			</div>
