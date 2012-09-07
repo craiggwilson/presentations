@@ -1,6 +1,7 @@
 obj
 bin
 deploy
+packages
 deploy/*
 *.user
 *.suo
