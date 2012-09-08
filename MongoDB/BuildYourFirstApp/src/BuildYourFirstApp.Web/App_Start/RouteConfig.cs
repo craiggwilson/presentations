@@ -14,6 +14,21 @@ namespace BuildYourFirstApp.Web
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute(
+                name: "NewBook",
+                url: "books/new",
+                defaults: new { controller = "Books", action="New" });
+
+            routes.MapRoute(
+                name: "NewBookReview",
+                url: "books/{title}/notes/new",
+                defaults: new { controller = "Books", action = "NewReview" });
+
+            routes.MapRoute(
+                name: "ViewBook",
+                url: "books/{title}",
+                defaults: new { controller = "Books", action="View" });
+
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }

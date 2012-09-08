@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using BuildYourFirstApp.Web.Data;
+using MongoDB.Bson;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +9,6 @@ namespace BuildYourFirstApp.Web.Models
 {
     public class BookListViewModel
     {
-        public IEnumerable<BookViewModel> Books { get; set; }
+        public IEnumerable<Book> Books { get; set; }
     }
 }

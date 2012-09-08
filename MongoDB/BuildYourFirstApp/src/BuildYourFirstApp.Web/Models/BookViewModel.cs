@@ -1,4 +1,4 @@
-﻿using MongoDB.Bson;
+﻿using BuildYourFirstApp.Web.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,8 +8,8 @@ namespace BuildYourFirstApp.Web.Models
 {
     public class BookViewModel
     {
-        public ObjectId Id { get; set; }
+        public Book Book { get; set; }
 
-        public string Title { get; set; }
+        public Author Author { get; set; }
     }
 }

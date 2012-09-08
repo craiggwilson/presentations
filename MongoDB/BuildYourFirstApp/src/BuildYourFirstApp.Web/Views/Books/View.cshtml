@@ -1,0 +1,38 @@
+﻿@model BookViewModel
+
+<div class="container">
+    <div class="content">
+        <table class="table table-striped">
+            <tr>
+                <td colspan="2">
+                    <h2>@Model.Book.Title</h2>
+                </td>
+            </tr>
+            <tr>
+                <td>Isbn:</td>
+                <td>@Model.Book.Isbn</td>
+            </tr>
+            <tr>
+                <td>Author:</td>
+                <td><a href="@Url.Action("View", "Authors", new { name = @Model.Author.Name })">@Model.Author.Name</a></td>
+            </tr>
+            <tr>
+                <td>Available:</td>
+                <td>@Model.Book.Available</td>
+            </tr>
+            <tr>
+                <td>Number of Pages:</td>
+                <td>@Model.Book.Pages</td>
+            </tr>
+            <tr>
+                <td>Publisher:</td>
+                <td>@Model.Book.Publisher.PublisherName - @Model.Book.Publisher.PublisherCity</td>
+            </tr>
+            <tr>
+                <td colspan="2" class="header" text-align="left"></td>
+            </tr>
+        </table>
+
+        <a class="btn" href="@Url.Action("NewReview", new { title = Model.Book.Title })">add a note</a>
+    </div>
+</div>
