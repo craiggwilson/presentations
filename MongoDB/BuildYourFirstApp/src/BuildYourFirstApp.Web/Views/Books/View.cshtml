@@ -28,11 +28,33 @@
                 <td>Publisher:</td>
                 <td>@Model.Book.Publisher.PublisherName - @Model.Book.Publisher.PublisherCity</td>
             </tr>
+            @if(Model.Book.Notes != null)
+            {
+                <tr>
+                    <td>Notes:</td>
+                    <td>
+                        @foreach (var note in Model.Book.Notes.Take(10))
+                        {
+                            <p>@note.Username - @note.Note</p>
+                        }
+                    </td>
+                </tr>
+            }
             <tr>
                 <td colspan="2" class="header" text-align="left"></td>
             </tr>
+            <tr>
+                <td>New Note:</td>
+                <td>
+                    <form action="@Url.Action("NewNote")" method="post">
+                        <input type="hidden" name="title" value="@Model.Book.Title" />
+                        <textarea name="note"></textarea>
+                        <br />
+                        <br />
+                        <input class="btn" type="submit" value="Add Note" />
+                    </form>
+                </td>
+            </tr>
         </table>
-
-        <a class="btn" href="@Url.Action("NewReview", new { title = Model.Book.Title })">add a note</a>
     </div>
 </div>

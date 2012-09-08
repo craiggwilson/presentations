@@ -70,10 +70,24 @@ namespace BuildYourFirstApp.Web.Controllers
             return RedirectToAction("View", new { title = book.Title });
         }
 
-        [HttpGet]
-        public ActionResult NewReview(string title)
+        [HttpPost]
+        public ActionResult NewNote(string title, string note)
         {
-            return View();
+            if(string.IsNullOrWhiteSpace(title))
+            {
+                return RedirectToAction("Index");
+            }
+            if(string.IsNullOrWhiteSpace(note))
+            {
+                return RedirectToAction("View", new { title = title });
+            }
+
+            var query = Query<Book>.Where(b => b.Title == title);
+            var update = Update<Book>.Push(x => x.Notes, new BookNote { Username = User.Identity.Name, Note = note });
+
+            Books.Update(query, update);
+
+            return RedirectToAction("View", new { title = title });
         }
 
         public ActionResult View(string title)

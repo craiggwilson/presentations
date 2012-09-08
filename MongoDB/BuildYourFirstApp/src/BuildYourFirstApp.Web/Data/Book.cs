@@ -22,6 +22,8 @@ namespace BuildYourFirstApp.Web.Data
         public bool Available { get; set; }
 
         public ObjectId Author { get; set; }
+
+        public List<BookNote> Notes { get; set; }
     }
 
     public class BookPublisher
@@ -29,5 +31,12 @@ namespace BuildYourFirstApp.Web.Data
         public string PublisherName { get; set; }
 
         public string PublisherCity { get; set; }
+    }
+
+    public class BookNote
+    {
+        public string Username { get; set; }
+
+        public string Note { get; set; }
     }
 }

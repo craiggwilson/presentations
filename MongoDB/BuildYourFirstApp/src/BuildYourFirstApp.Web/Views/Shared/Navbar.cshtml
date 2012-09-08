@@ -19,11 +19,11 @@
             <p class="navbar-text pull-right">
                 @if(User.Identity.IsAuthenticated)
                 {
-                    <a href="@Url.Action("Logout", "Home")">Logout</a>   
+                    <a href="@Url.Action("Logout", "Account")">Logout</a>   
                 }
                 else
                 {
-                    <a href="@Url.Action("Login", "Home")">Login</a>
+                    <a href="@Url.Action("Login", "Account")">Login</a>
                 }
             </p>
         </div>

@@ -1,0 +1,22 @@
+﻿@model AuthorListViewModel
+
+<div class="container">
+    <div class="content">
+        <table class="table table-striped">
+            <tr>
+                <td><h2>Authors</h2></td>
+            </tr>
+            @foreach (var author in Model.Authors)
+            {
+                <tr>
+                    <td>
+                        <a href="@Url.Action("View", new { name = author.Name })">@author.Name</a>
+                    </td>
+                </tr>
+            }
+            <tr>
+                <th class="header" style="text-align: left"></th>
+            </tr>
+        </table>
+    </div>
+</div>

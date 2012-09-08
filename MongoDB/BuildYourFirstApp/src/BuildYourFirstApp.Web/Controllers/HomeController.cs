@@ -29,17 +29,7 @@ namespace BuildYourFirstApp.Web.Controllers
 
         private int GetUniqueAuthorCount()
         {
-            var pipeline = new List<BsonDocument>();
-            pipeline.Add(new BsonDocument("$project", new BsonDocument("author", 1)));
-            pipeline.Add(new BsonDocument("$group",
-                new BsonDocument
-                {
-                    { "_id", "$author" },
-                    { "book_count", new BsonDocument("$sum", 1) }
-                }));
-
-            var authors = Authors.Aggregate(pipeline);
-            return authors.ResultDocuments.Count();
+            return (int)Authors.Count();
         }
     }
 }
