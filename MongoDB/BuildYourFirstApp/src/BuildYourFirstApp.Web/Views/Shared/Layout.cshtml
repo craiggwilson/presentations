@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    @Styles.Render("~/Assets/css")
+
+    <link rel="apple-touch-icon" href="~/Assets/bootstrap/images/apple-touch-icon.png" />
+    <link rel="shortcut icon" href="~/Assets/bootstrap/images/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="72x72" href="~/Assets/bootstrap/images/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="~/Assets/bootstrap/images/apple-touch-icon-114x114.png" />
+</head>
+<body>
+    <div>
+        @Html.Partial("Navbar")
+    </div>
+
+    <div id="wrap">
+        <div id="main" class="body">
+            <div>
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        @Html.Partial("Footer")
+    </footer>
+     <!-- Placed at the end of the document so the pages load faster -->
+    @Scripts.Render("~/Assets/js")
+</body>
+</html>

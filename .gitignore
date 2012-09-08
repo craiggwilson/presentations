@@ -7,4 +7,4 @@ deploy/*
 *.suo
 *.cache
 ~$*
-
+*.ncrunchsolution

@@ -1,0 +1,6 @@
+﻿@model BookListViewModel
+
+@foreach (var book in Model.Books)
+{
+    <a href="@Url.Action("View", new { id = book.Id })">@book.Title</a>
+}
