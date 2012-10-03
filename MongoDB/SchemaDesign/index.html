@@ -41,6 +41,20 @@
 
 			<!-- Any section element inside of this container is displayed as a slide -->
 			<div class="slides">
+				<section>
+					<section>
+						<p>Images showing a messy and an organized library.</p>
+						<aside class="notes">
+							Dispel the pre-conception that schema-less is unorganized or messy.
+							This problem exists in any database, relational or otherwise.
+						</aside>
+					</section>
+					<section data-state="title-slide">
+						<h1 class="logo">MongoDB</h1>
+						<h2>How do we organize our data in MongoDB</h2>
+					</section>
+				</section>
+
 				<section data-state="title-slide">
 					<h1 class="logo">MongoDB</h1>
 					<h2>Schema Design By Example</h2>
@@ -51,96 +65,49 @@
 				</section>
 
 				<section>
-					<h1>Today's Talk</h1>
+					<h1>3 Components to Schema Design</h1>
+
+					<ol>
+						<li>The Data Your Application Needs.</li>
+						<li>How Your Application Will Read the Data.</li>
+						<li>How Your Application Will Write the Data.</li>
+					</ol>
+
+					<aside class="notes">
+						Unlike a relational database where there is a very prescriptive way to build a schema, MongoDB offers lots of flexibility.
+						These components come up through each stage in the lifetime of an application.
+					</aside>
+				</section>
+				<section>
+					<h1>Why is Schema Design Important?</h1>
 
 					<ul>
-						<li>Why is schema design important?</li>
-						<li>Questions to ask yourself when designing a schema.</li>
-						<li>What schema elements are available for you to design around?</li>
-						<li>Examples.</li>
+						<li>Development.</li>
+						<li>Production Usage.</li>
+						<li>Changing Priorities.</li>
 					</ul>
-				</section>
 
-				<section>
-					<h1>Why is schema design important?</h1>
-					
-					<ul>
-						<li class="fragment">mongoDB gives you a lot of flexibility and power over the data you are representing.</li>
-						<li class="fragment">The way you model your data should be a function of how your application uses it.</li>
-						<li class="fragment">Your data may grow and its priorities may change over time. Your schema can help you anticipate this.</li>
+					<aside class="notes">
+						Each stage of the lifetime offers the opportunity to make choices.
 
-					</ul>
-					
-				</section>
-
-				<section>
-					<h1>Questions to Ask Yourself</h1>
-
-					<ul>
-						<li class="fragment">What are the usage patterns of your data? Will your application be read or write intensive?</li>
-						<li class="fragment">
-							How do you anticipate your documents changing over time?
-							<ul>
-								<li>Will they grow or shrink?</li>
-								<li>Will they get normalized or denormalized</li>
-							</ul>
-						<li class="fragment">Are there some immutable fields that you can leverage?</li>
-						<li class="fragment">Do you anticipate needing to shard your data?</li>
-					</ul>
-				</section>
-
-				<section>
-					<h1>Available Schema Elements</h1>
-
-					<ul> 
-						<li class="fragment">
-							Primitive Types
-							<ul>
-								<li>Double</li>
-								<li>UTF-8 String</li>
-								<li>
-									Binary
-									<ul>
-										<li>Raw</li>
-										<li>Guid
-										<li>MD5</li>
-									</ul>
-								</li>
-								<li>ObjectId</li>
-								<li>Boolean</li>
-								<li>UTC DateTime</li>
-								<li>Null</li>
-								<li>Regular Expression</li>
-								<li>32-bit Integer</li>
-								<li>Timestamp</li>
-								<li>64-bit Integer</li>
-							</ul>
-						</li>
-						<li class="fragment">
-							Rich Types
-							<ul>
-								<li>Documents</li>
-								<li>Arrays</li>
-							</ul>
-						</li>
-					</ul>
+						<ul>
+							<li>Development - Flexibility</li>
+							<li>Production usage - Alter Our Schema Based on Application Needs</li>
+							<li>Priorities Change - Alter Our Schema Based on Business Needs</li>
+						</ul>
+					</aside>
 				</section>
 
 				<section>
 					<section>
-						<h1>Example: Library Application</h1>
+						<h1>What is a Document Database?</h1>
 
-						<p>An application for saving a collection of books.<p>
+						<ul>
+							<li>Storage in json.</li>
+							<li>Application-defined schema</li>
+							<li>...</li>
+						</ul>
 					</section>
-					<section>
-						<img src="img/books_index.png" style="max-height:150%;"/>
-					</section>
-					<section>
-						<img src="img/authors_index.png" style="max-height:150%;"/>
-					</section>
-				</section>
-
-				<section class="center-image">
 					<section>
 						<h1>Schema - Book</h1>
 						<pre><code class="language-javascript small-size">
@@ -188,10 +155,23 @@ user = {
 						</code></pre>
 					</section>
 				</section>
+				<section>
+					<section>
+						<h1>Example: Library Application</h1>
+
+						<p>An application for saving a collection of books.<p>
+					</section>
+					<section>
+						<img src="img/books_index.png" style="max-height:150%;"/>
+					</section>
+					<section>
+						<img src="img/authors_index.png" style="max-height:150%;"/>
+					</section>
+				</section>
 
 				<section>
 					<section>
-						<h1>Query Samples</h1>
+						<h1>Some Sample Documents</h1>
 
 						<pre><code class="language-javascript small-size">
 > db.authors.findOne()
@@ -240,12 +220,22 @@ user = {
 				
 				<section>
 					<h1>What should we keep in mind as we design this schema?</h1>
+
+					<ol>
+						<li>The Data Your Application Needs.</li>
+						<li>How Your Application Will Read the Data.</li>
+						<li>How Your Application Will Write the Data.</li>
+					</ol>
+
+					<aside class="notes">
+						???
+					</aside>
 				</section>
 				
 				
 				<section>
 					<section>
-						<h1>Applied Principles and Patterns</h1>
+						<h1>Applied Principles and Patterns</h1>	
 						<div class="fragment">
 							<h3>Principle: Schema-less does NOT mean No-Schema</h3>
 							<ul>
