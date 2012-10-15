@@ -30,6 +30,16 @@
 		<!--[if lt IE 9]>
 		<script src="lib/js/html5shiv.js"></script>
 		<![endif]-->
+
+		<style>
+			div.reveal section aside.notes {
+				background-color: #fff;
+				border: 1px solid black;
+				color: #000;
+				display: block;
+				font-size: 20px;
+			}
+		</style>
 	</head>
 
 	<body>
@@ -43,15 +53,13 @@
 			<div class="slides">
 				<section>
 					<section>
-						<p>Images showing a messy and an organized library.</p>
-						<aside class="notes">
-							Dispel the pre-conception that schema-less is unorganized or messy.
-							This problem exists in any database, relational or otherwise.
-						</aside>
-					</section>
-					<section data-state="title-slide">
-						<h1 class="logo">MongoDB</h1>
-						<h2>How do we organize our data in MongoDB</h2>
+						<h1>Modern Application Development with MongoDB is Easier</h1>
+
+						<ul>
+							<li>Most concepts aren't relational.</li>
+							<li>Building understandable schemas that scale is possible.</li>
+							<li>Object-Oriented Persistence Mechanisms Map Naturally to MongoDB.</li>
+						</ul>
 					</section>
 				</section>
 
@@ -65,6 +73,45 @@
 				</section>
 
 				<section>
+					<h1>Differences with Traditional Schema Design</h1>
+
+					<table>
+						<tr>
+							<th>Traditional</th>
+							<th>MongoDB</th>
+						</tr>
+						<tr>
+							<td>Your application doesn't matter.</td>
+							<td>It's always about your application.</td>
+						</tr>
+						<tr>
+							<td>Only About the Data</td>
+							<td>Not Only About the Data, but also how it's used.</td>
+						</tr>
+						<tr>
+							<td>Only relevant during design.</td>
+							<td>Relevant during the lifetime of your application.</td>
+						</tr>
+					</table>
+				</section>
+
+				<section>
+					<h1>Schema Design is Evolutionary</h1>
+
+					<ul>
+						<li>Design and Development.</li>
+						<li>Deployment and Monitoring.</li>
+						<li>Iterative Modification.</li>
+					</ul>
+
+					<aside class="notes">
+						<p>Every application goes through a lifetime.</p>
+						<p>Each stage brings changes to the schema.</p>
+						<p>Each stage of the lifetime offers the opportunity to make choices.</p>
+					</aside>
+				</section>
+
+				<section>
 					<h1>3 Components to Schema Design</h1>
 
 					<ol>
@@ -74,27 +121,8 @@
 					</ol>
 
 					<aside class="notes">
-						Unlike a relational database where there is a very prescriptive way to build a schema, MongoDB offers lots of flexibility.
-						These components come up through each stage in the lifetime of an application.
-					</aside>
-				</section>
-				<section>
-					<h1>Why is Schema Design Important?</h1>
-
-					<ul>
-						<li>Development.</li>
-						<li>Production Usage.</li>
-						<li>Changing Priorities.</li>
-					</ul>
-
-					<aside class="notes">
-						Each stage of the lifetime offers the opportunity to make choices.
-
-						<ul>
-							<li>Development - Flexibility</li>
-							<li>Production usage - Alter Our Schema Based on Application Needs</li>
-							<li>Priorities Change - Alter Our Schema Based on Business Needs</li>
-						</ul>
+						<p>Unlike a relational database where there is a very prescriptive way to build a schema, MongoDB offers lots of flexibility.</p>
+						<p>These components come up through each stage in the lifetime of an application.</p>
 					</aside>
 				</section>
 
@@ -107,6 +135,29 @@
 							<li>Application-defined schema</li>
 							<li>...</li>
 						</ul>
+						<aside class="notes">
+							<p>Discuss how this type of database provides opportunity for choice.</p>
+						</aside>
+					</section>
+					<section>
+						<h1>Schema - Author</h1>
+						<pre><code class="language-javascript small-size">
+author = {
+  "_id": int,
+  "first_name": string,
+  "last_name": string
+}
+						</code></pre>
+					</section>
+					<section>
+						<h1>Schema - User</h1>
+						<pre><code class="language-javascript small-size">
+user = {
+  "_id": int,
+  "username": string,
+  "password": string
+}
+						</code></pre>
 					</section>
 					<section>
 						<h1>Schema - Book</h1>
@@ -131,26 +182,6 @@ book = {
   	"note": string
   }],
   "language": string
-}
-						</code></pre>
-					</section>
-					<section>
-						<h1>Schema - Author</h1>
-						<pre><code class="language-javascript small-size">
-author = {
-  "_id": int,
-  "first_name": string,
-  "last_name": string
-}
-						</code></pre>
-					</section>
-					<section>
-						<h1>Schema - User</h1>
-						<pre><code class="language-javascript small-size">
-user = {
-  "_id": int,
-  "username": string,
-  "password": string
 }
 						</code></pre>
 					</section>
@@ -218,7 +249,7 @@ user = {
 				</section>
 				
 				<section class="center-image">
-					<h1>Phase: Development</h1>
+					<h1>Design and Development.</h1>
 				</section>
 				<section>
 					<section>
@@ -237,8 +268,8 @@ book.publisher:
 							</li>
 							
 							<aside class="notes">
-								In general, use embedded documents when possible.
-								Usually one embeds documents that seldom change and data that's not interesting enough to warrant a document of its own. 
+								<p>In general, use embedded documents when possible.</p>
+								<p>Usually one embeds documents that seldom change and data that's not interesting enough to warrant a document of its own.</p>
 							</aside> 
 			
 							<li>
@@ -249,10 +280,10 @@ book.subjects: ["Love stories", "1920s", "Jazz Age"],
 							</li>
 							
 							<aside class="notes">
-								Multi-key indexes - will index each element of the array.
-								Query: db.books.find( { subject: { $all: [ 'Love stories', 'Jazz Age' ] } } )
-								$addToSet and $pull to add and remove keys 
-								Whether to embed positionally using an array or embedded doc is a matter of taste and depends on whether you want to use a multi-key index.
+								<p>Multi-key indexes - will index each element of the array.</p>
+								<p>Query: db.books.find( { subject: { $all: [ 'Love stories', 'Jazz Age' ] } } )</p>
+								<p>$addToSet and $pull to add and remove keys</p>
+								<p>Whether to embed positionally using an array or embedded doc is a matter of taste and depends on whether you want to use a multi-key index.</p>
 							</aside>
 
 							<li>
@@ -266,7 +297,7 @@ book.notes: [
 							</li>
 							
 							<aside class="notes">
-								You can even index on keys inside embedded documents. 
+								<p>You can even index on keys inside embedded documents.</p>
 							</aside>
 						</ul>
 					</section>
@@ -296,6 +327,9 @@ book.notes: [
   ...	
 }
 						</code></pre>
+						<aside class="notes">
+							<p>We have to first find the author before we find the books.</p>
+						</aside>
 					</section>
 					<section>
 						<h3>Query for books in which I have made notes</h3>
@@ -308,18 +342,44 @@ book.notes: [
   ...
 }
 						</code></pre>
+						<aside class="notes">
+							<p>We have to know the user's id before we can do this query.</p>
+							<p>If we wanted to find notes by a different user, we'd first have to find that user.</p>
+						</aside>
 					</section>
 				</section>
 				<section>
 					<section>
 						<h1>How Our Library Writes Data.</h1>
+						<h3>Add notes to a book</h3>
+						<pre><code class="language-javascript small-size">
+> note = { user: 1, note: "I did NOT like this book." }
+
+> db.books.update({ _id: 1 }, { $push: { notes: note }})
+						</code></pre>
+					</section>
+					<section>
+						<h3>Take Advantage of Atomic Operations</h3>
+						<ul>
+							<li>$set - set a value</li>
+							<li>$unset - unsets a value</li>
+							<li>$inc - increment an integer</li>
+							<li>$push - append a value to an array</li>
+							<li>$pushAll - append several values to an array</li>
+							<li>$pull - remove a value from an array</li>
+							<li>$pullAll - remove several values from an array</li>
+							<li>$bit - bitwise operations</li>
+							<li>$addToSet - adds a value to a set if it doesn't already exist</li>
+							<li>$rename - renames a field</li>
+						</ul>
 					</section>
 				</section>
 				<section>
-					<h1>Phase: Production</h1>
+					<h1>Deployment and Monitoring</h1>
 
 					<aside class="notes">
-						Describe some issues we encountered and how we'll fix them.
+						<p>Describe some issues we encountered and how we'll fix them.</p>
+						<p>Also note thate we are skipping the "The Date Our App Needs" because that hasn't changed in this lifetime phase.</p>
 					</aside>
 				</section>
 				<section>
@@ -339,6 +399,9 @@ book.notes: [
   ...
 }
 						</code></pre>
+						<aside class="notes">
+							<p>Turns out many of users didn't know the full author's name and wanted to search by partial names.</p>
+						</aside>
 					</section>
 					<section>
 						<h3>Documents Should Reflect Query Patterns</h3>
@@ -358,7 +421,7 @@ book = {
 								</code></pre>
 							</li>
 						<li>
-							Query for books by an author's first name using an embedded document with cached name.
+							Query for books by an author's first name using an embedded document with a denormalized name.
 							<pre><code class="language-javascript small-size">
 > db.books.find({author.name: /^f.*/i })
 {
@@ -385,6 +448,9 @@ book = {
   ]
 }
 						</code></pre>
+						<aside class="notes">
+							<p>Turns out we were killing our database because we had to go back to it for every note to get the author.</p>
+						</aside>
 					</section>
 					<section>
 						<h3>Take Advantage of Immutable Data</h3>
@@ -433,21 +499,9 @@ book = {
 
 > db.books.update({ _id: 1 }, { $push: { notes: note }})
 						</code></pre>
-					</section>
-					<section>
-						<h3>Take Advantage of Atomic Operations</h3>
-						<ul>
-							<li>$set - set a value</li>
-							<li>$unset - unsets a value</li>
-							<li>$inc - increment an integer</li>
-							<li>$push - append a value to an array</li>
-							<li>$pushAll - append several values to an array</li>
-							<li>$pull - remove a value from an array</li>
-							<li>$pullAll - remove several values from an array</li>
-							<li>$bit - bitwise operations</li>
-							<li>$addToSet - adds a value to a set if it doesn't already exist</li>
-							<li>$rename - renames a field</li>
-						</ul>
+						<aside class="notes">
+							<p>Turns out that our writes were causing problems by continually growing the document's size.  Data locality is the cornerstone for performance in MongoDB.</p>
+						</aside>
 					</section>
 					<section>
 						<h3>Anti-pattern: Continually Growing Documents</h3>
@@ -455,9 +509,13 @@ book = {
 							<li>Document Size Limit</li>
 							<li>Storage Fragmentation</li>
 						</ul>
+
+						<aside class="notes">
+							<p>Describe the detrimental effects this has upon a database.</p>
+						</aside>
 					</section>
 					<section>
-						<h3>Linking #1</h3>
+						<h3>Linking: One-to-One relationship</h3>
 						<ul>
 							<li>
 								Move notes to another document, with one document per book id.
@@ -483,7 +541,7 @@ bookNotes = {
 	
 </section>
 					<section>
-						<h3>Linking #2</h3>
+						<h3>Linking: One-to-Many relationship</h3>
 						<ul>
 							<li>
 								Move notes to another document with one document per note.
@@ -547,7 +605,12 @@ bookNotes = {
 				</section>
 
 				<section>
-					<h1>Phase: Priorities Change</h1>
+					<h1>Interative Modification</h1>
+
+					<aside class="notes">
+						<p>Customers have asked for more features.</p>
+						<p>Business needs to change direction.</p>
+					</aside>
 				</section>
 
 				<section>
@@ -640,24 +703,30 @@ bookNotes = {
 						</li>
 					</ul>
 
+					<aside class="notes">
+						<p>All docs must have the shard key.</p>
+						<p>Shard key values are immutable once the doc is inserted.</p>
+						<p>How will you query using the shard key?.</p>
+						<p>Sorting by shard key must be efficient.</p>
+					</aside>
 				</section>
-					
- <aside class="notes">
-All docs must have the shard key
-Shard key values are immutable once the doc is inserted
-How will your query using the shard key
-Make sure that sorting by shard key can be efficient 
- </aside>	
 				
 				<section>
 					<h1>Schema design in mongoDB</h1>
 					<br/>
-					<h2>Basic design principles apply.</h2><br/>
-					<h2>Focus on how your application uses and changes the data when designing a schema.</h2><br/>
-					<h2>Take advantage of the flexibility and features of mongoDB.</h2><br/>
-					<h2>Anticipate document and collection growth over time.</h2>
+					<h2>It's about your application.</h2>
+					<h2>It's about your data and how it's used.</h2>
+					<h2>It's about the entire lifetime of your application.</h2>
 				</section>
-				
+
+				<section>
+					<h1>Examples of schemas that are incredibly difficult to build using traditional databases.</h1>
+
+					<ul>
+						<li>E-commerce - product catalogs (show pictures)</li>
+						<li>...</li>
+					</ul>
+				</section>
 			</div>
 
 			<!-- The navigational controls UI -->
